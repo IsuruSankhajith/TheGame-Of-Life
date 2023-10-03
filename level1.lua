@@ -38,6 +38,7 @@ local function onPlayBtnRelease()
 end
 ----------------------------------------------------------------------------------------------------------
 
+-- Define a local function named onfbackBtnRelease()
 local function onfbackBtnRelease()
     
     -- go to level1.lua scene
@@ -48,10 +49,13 @@ end
 
 
 ---------------------------------------------------------------------------------------------------------------
+
 local function createGrid()
+    -- Initialize two empty tables, grid and nextGrid, which will hold the grid data
     for i = 1, gridSize do
         grid[i], nextGrid[i] = {}, {}
         for j = 1, gridSize do
+            -- Fill the grid with random boolean values (true or false)
             grid[i][j] = math.random(2) == 1
         end
     end
@@ -64,10 +68,10 @@ local function onStartGameBtnRelease()
     -- Start the game logic here
     if not isGameStarted then
         isGameStarted = true
-        createGrid()
-        displayPoints()
+        createGrid()  -- Generate the game grid
+        displayPoints()  -- Display game points (not shown in the provided code)
         Runtime:addEventListener("enterFrame", onEnterFrame)
-        setupMouseListeners()
+        setupMouseListeners() --- Set up mouse listeners (not shown in the provided code)
         startGameBtn.isVisible = false  -- Hide the button after starting the game
     end
 end
@@ -110,6 +114,10 @@ local function onToggleStartState(event)
     scene:addEventListener("touch", onUserInput)
 
 ----------------------------------------------------------------------------------------------------------------
+----This function is responsible for generating a random initial state for the grid.
+---- It appears to fill the grid table with random boolean values, 
+---- which may represent the initial state of cells in a grid.
+
 local function createRandomInitialState()
     -- Implement logic to generate a random initial state for your grid
     for i = 1, gridSize do
@@ -131,6 +139,7 @@ local function displayPoints()
     end
 end
 ------------------------------------------------------------------------------------------------------------
+-- Define a local function named 'onRandomSeedButtonRelease'
 
 local function onRandomSeedButtonRelease()
     createRandomInitialState() -- Call a function to generate a random initial state
@@ -141,25 +150,33 @@ end
 scene:addEventListener("touch", onUserInput)
 
 -------------------------------------------------------------------------------------------------------------
+-- Define a function named 'countNeighbors' that takes two parameters: 'x' and 'y'
 local function countNeighbors(x, y)
     local count, dx, dy = 0, {-1, 0, 1, -1, 1, -1, 0, 1}, {-1, -1, -1, 0, 0, 1, 1, 1}
+
+     -- Loop through the eight possible neighbor positions
     for i = 1, 8 do
         local newX, newY = x + dx[i], y + dy[i]
         if newX >= 1 and newX <= gridSize and newY >= 1 and newY <= gridSize and grid[newX][newY] then
             count = count + 1
         end
     end
+    -- Return the final count of neighboring cells
     return count
 end
 ------------------------------------------------------------------------------------------------------------
-
+-- Define a function named 'calculateNextGeneration'
 local function calculateNextGeneration()
     for i = 1, gridSize do
         for j = 1, gridSize do
+            -- Calculate the number of neighbors for the cell at (i, j)
             local neighbors = countNeighbors(i, j)
+
+             -- Apply the rules of Conway's Game of Life to update the cell's state
             nextGrid[i][j] = grid[i][j] and (neighbors == 2 or neighbors == 3) or (not grid[i][j] and neighbors == 3)
         end
     end
+    -- Swap the 'grid' and 'nextGrid' references to update the main grid with the new generation
     grid, nextGrid = nextGrid, grid
 end
 ------------------------------------------------------------------------------------------------------------
@@ -176,45 +193,69 @@ local function displayPoints()
     end
 end
 -----------------------------------------------------------------------------------------------------------
+
+-- Define a function named 'onEnterFrame' that takes an 'event' parameter
 local function onEnterFrame(event)
-    if isRunning then  -- Only update the grid if the simulation is running
+    -- Check if the simulation is running (controlled by the 'isRunning' variable)
+    if isRunning then
+        -- Use pcall to catch and handle errors during execution
         local success, errorInfo = pcall(function()
+            -- Calculate the next generation of the grid
             calculateNextGeneration()
+
+            -- Iterate over the 'circles' table to update their fill colors
             for i, circle in ipairs(circles) do
                 local x, y = circle.x, circle.y
+
+                -- Calculate the corresponding grid coordinates for the circle's position
                 local gridX, gridY = math.floor((x - startX) / pointRadius) + 1, math.floor((y - startY) / pointRadius) + 1
+
+                -- Set the fill color of the circle based on the state of the corresponding grid cell
                 circle:setFillColor(grid[gridX][gridY] and unpack(aliveColor) or unpack(deadColor))
             end
         end)
 
+        -- Check for and handle any errors that occurred during execution
         if not success then
             print("Error in onEnterFrame:", errorInfo)
         end
     end
 end
+
 --------------------------------------------------------------------------------------------------------------
 
+-- Define a function named 'onUserInput' that takes an 'event' parameter
 local function onUserInput(event)
+    -- Check if the input event is in the "began" or "moved" phase (e.g., touch or mouse interaction)
     if event.phase == "began" or event.phase == "moved" then
+        -- Extract the x and y coordinates of the input event
         local x, y = event.x, event.y
+
+        -- Calculate the corresponding grid coordinates for the input position
         local gridX = math.floor((x - startX) / pointRadius) + 1
         local gridY = math.floor((y - startY) / pointRadius) + 1
 
-        -- Check if the grid coordinates are valid
+        -- Check if the calculated grid coordinates are within the valid grid boundaries
         if gridX >= 1 and gridX <= gridSize and gridY >= 1 and gridY <= gridSize then
-            -- Toggle the state of the cell at the grid coordinates
+            -- Toggle the state of the cell at the grid coordinates (alive to dead, or vice versa)
             grid[gridX][gridY] = not grid[gridX][gridY]
 
             -- Update the display to reflect the new cell state
             local circle = display.newCircle(x, y, pointRadius)
             circle:setFillColor(grid[gridX][gridY] and unpack(aliveColor) or unpack(deadColor))
+
+            -- Add the newly created circle to the 'circles' table (assuming 'circles' is defined elsewhere)
             circles[#circles + 1] = circle
         end
     end
 end
+
 --------------------------------------------------------------------------------------------------------------
+-- Define a function named 'onPauseResumeBtnRelease'
 local function onPauseResumeBtnRelease()
     print("Pause/Resume button pressed")  -- Debugging output
+
+    -- Check if the simulation is currently running
     if isRunning then
         -- Pause the simulation
         isRunning = false
@@ -227,6 +268,7 @@ local function onPauseResumeBtnRelease()
         print("Simulation resumed")
     end
 end
+
 
 
 
@@ -340,19 +382,22 @@ display.setDefault("background", unpack(backgroundColor))
     end
 end
 ---------------------------------------------------------------------------------------------------------------
+-- Define a function named 'buttonPressEffect' that takes an 'event' parameter
 local function buttonPressEffect(event)
-    local button = event.target
+    local button = event.target  -- Get the button that triggered the event
 
+    -- Check the phase of the touch event (began, ended, or cancelled)
     if event.phase == "began" then
-        -- Scale the button down to 95% of its size when pressed
-        transition.to(button, { xScale = 0.95, yScale = 0.95, time = 100 })
+        -- Scale the button down to 95% of its size when the touch begins
+        transition.to(button, { xScale = 0.95, yScale = 0.95, time = 100 })  -- Transition animation
     elseif event.phase == "ended" or event.phase == "cancelled" then
-        -- Return the button to its original size when the touch is released
-        transition.to(button, { xScale = 1, yScale = 1, time = 100 })
+        -- Return the button to its original size when the touch is released or canceled
+        transition.to(button, { xScale = 1, yScale = 1, time = 100 })  -- Transition animation
     end
 
-    return true
+    return true  -- Return 'true' to indicate that the touch event has been handled
 end
+
 ---------------------------------------------------------------------------------------------------------------
 
 local function main()
