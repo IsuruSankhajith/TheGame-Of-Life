@@ -3,6 +3,8 @@ local scene = composer.newScene()
 local physics = require("physics")
 local widget = require "widget"
 local json = require("json")
+local startGameBtn
+local isGameStarted = false
 
 -- Define the scene-specific variables
 local pauseResumeBtn = nil
@@ -35,6 +37,8 @@ local function onPlayBtnRelease()
     return true -- indicates successful touch
 end
 
+
+
 ---------------------------------------------------------------------------------------------------------------
 local function createGrid()
     for i = 1, gridSize do
@@ -44,6 +48,22 @@ local function createGrid()
         end
     end
 end
+
+
+------------------------------------------------------------------------------------------------------
+
+local function onStartGameBtnRelease()
+    -- Start the game logic here
+    if not isGameStarted then
+        isGameStarted = true
+        createGrid()
+        displayPoints()
+        Runtime:addEventListener("enterFrame", onEnterFrame)
+        setupMouseListeners()
+        startGameBtn.isVisible = false  -- Hide the button after starting the game
+    end
+end
+--------------------------------------------------------------------------------------------------------------
 
 ----------------------------------------------------------------------------------------------------------------
 local function onToggleStartState(event)
@@ -288,8 +308,8 @@ local function decreaseSpeed()
     end
 end
 
+---------------------------------------------------------------------------------------------------------------
 
---------------------------------------------------------------------------------------------------------------
 local function main()
     createGrid()
     displayPoints()
@@ -319,20 +339,19 @@ function scene:create(event)
     }
 
 -------------------------------------------------------------------------------------------------------------
-    playBtn = widget.newButton{
-        label = "Back",
-        labelColor = { default={ 1.0 }, over={ 0.5 } },
-        shape = "roundedRect",
-        cornerRadius = 10,
-        fillColor = { default={0.6, 0.3, 0.1, 1}, over={0.6, 0.3, 0.1, 0.5} },  -- Brown color
+     -- Add the title text with a custom font and italics
+    local titleText = display.newText({
+        text = "Hi there! Let's have a blast!",
+        x = 160,  -- Adjust this value to move it to the left
+        y = 20,
+        fontSize = 20,
+        
+        align = "center",  -- Center alignment
+        width = 300,  -- Adjust the width if needed
+    })
 
-        width = 100, height = 40,
-        onRelease = onPlayBtnRelease  -- event listener function
-    }
-
-    playBtn.x = display.contentCenterX + 100
-
-    playBtn.y = display.contentHeight - playBtn.contentHeight / 2 - 40 
+    titleText:setFillColor(1, 1, 1)  -- Set text color (white in this example)
+    titleText.anchorX = 0.5  -- Center the text horizontally
 -----------------------------------------------------------------------------------------------------------
 
     randomStartButton = widget.newButton{
@@ -340,7 +359,7 @@ function scene:create(event)
         labelColor = { default={ 1.0 }, over={ 0.5 } },
         shape = "roundedRect",
         cornerRadius = 10,
-        fillColor = { default={0.6, 0.3, 0.1, 1}, over={0.6, 0.3, 0.1, 0.5} },  -- Brown color
+        fillColor = { default={0.5, 0.5, 0, 1}, over={0.5, 0.5, 0, 0.5} },  -- Yellow and black mix
         width = 110, height = 40,
         onRelease = onToggleStartState  -- Event listener function
     
@@ -357,7 +376,7 @@ function scene:create(event)
         labelColor = { default={ 1.0 }, over={ 0.5 } },
         shape = "roundedRect",
         cornerRadius = 10,
-        fillColor = { default={0.6, 0.3, 0.1, 1}, over={0.6, 0.3, 0.1, 0.5} },  -- Brown color
+        fillColor = { default={0.5, 0.5, 0, 1}, over={0.5, 0.5, 0, 0.5} },  -- Yellow and black mix
         width = 100, height = 40,
             onRelease = function()
                 -- Implement user input logic here
@@ -366,21 +385,38 @@ function scene:create(event)
             end
     }
 
-    userInputButton.x = display.contentCenterX 
+    userInputButton.x = display.contentCenterX +4
     userInputButton.y = display.contentHeight - userInputButton.contentHeight / 2 - 150
+--Back--------------------------------------------------------------------------------------------------------------
+    playBtn = widget.newButton{
+        label = "Back",
+        labelColor = { default={ 1.0 }, over={ 0.5 } },
+        shape = "roundedRect",
+        cornerRadius = 10,
+        fillColor = { default={0.5, 0.5, 0, 1}, over={0.5, 0.5, 0, 0.5} },  -- Yellow and black mix
+        width = 100, height = 40,
+        onRelease = onPlayBtnRelease  -- event listener function
+    }
+
+    playBtn.x = display.contentCenterX + 110
+
+    playBtn.y = display.contentHeight - playBtn.contentHeight / 2 - 150 
+
 ----------------------------------------------------------------------------------------------------------------
     randomSeedButton = widget.newButton{
         label = "Random Seed",
         labelColor = { default={ 1.0 }, over={ 0.5 } },
         shape = "roundedRect",
         cornerRadius = 10,
-        fillColor = { default={0.6, 0.3, 0.1, 1}, over={0.6, 0.3, 0.1, 0.5} },  -- Brown color
+        fillColor = { default={0.5, 0.5, 0, 1}, over={0.5, 0.5, 0, 0.5} },  -- Yellow and black mix
+
+
         width = 115, height = 40,
         onRelease = onRandomSeedButtonRelease
     }
 
     randomSeedButton.x = display.contentCenterX + 110
-    randomSeedButton.y = display.contentHeight - randomSeedButton.contentHeight / 2 - 150
+    randomSeedButton.y = display.contentHeight - randomSeedButton.contentHeight / 2 - 100
 
 ---------------------------------------------------------------------------------------------------------------
 pauseResumeBtn = widget.newButton{
@@ -388,14 +424,14 @@ pauseResumeBtn = widget.newButton{
         labelColor = { default={ 1.0 }, over={ 0.5 } },
         shape = "roundedRect",
         cornerRadius = 10,
-        fillColor = { default={0.6, 0.3, 0.1, 1}, over={0.6, 0.3, 0.1, 0.5} },
+        fillColor = { default={0.5, 0.5, 0, 1}, over={0.5, 0.5, 0, 0.5} },  -- Yellow and black mix
         width = 100,
         height = 40,
         onRelease = onPauseResumeBtnRelease
     }
 
-    pauseResumeBtn.x = display.contentCenterX - 105
-    pauseResumeBtn.y = display.contentHeight - pauseResumeBtn.contentHeight / 2 - 40
+    pauseResumeBtn.x = display.contentCenterX - 114
+    pauseResumeBtn.y = display.contentHeight - pauseResumeBtn.contentHeight / 2 - 100
 
  
 
@@ -404,14 +440,16 @@ pauseResumeBtn = widget.newButton{
         labelColor = { default={ 1.0 }, over={ 0.5 } },
         shape = "roundedRect",
         cornerRadius = 10,
-        fillColor = { default={0.6, 0.3, 0.1, 1}, over={0.6, 0.3, 0.1, 0.5} },
+        fillColor = { default={0.5, 0.5, 0, 1}, over={0.5, 0.5, 0, 0.5} },  -- Yellow and black mix
+
+
         width = 100,
         height = 40,
         onRelease = onRestartBtnRelease
     }
 
-    restartBtn.x = display.contentCenterX - 3
-    restartBtn.y = display.contentHeight - restartBtn.contentHeight / 2 - 40
+    restartBtn.x = display.contentCenterX - 5
+    restartBtn.y = display.contentHeight - restartBtn.contentHeight / 2 - 100
 
 ---------------------------------------------------------------------------------------------------------------
     local stopBtn = widget.newButton{
@@ -425,7 +463,7 @@ pauseResumeBtn = widget.newButton{
     }
 
     stopBtn.x = display.contentCenterX + 110
-    stopBtn.y = display.contentHeight - stopBtn.contentHeight / 2 - 105
+    stopBtn.y = display.contentHeight - stopBtn.contentHeight / 2 - 55
 
 ---------------------------------------------------------------------------------------------------------------
 local saveButton = widget.newButton{
@@ -433,26 +471,27 @@ local saveButton = widget.newButton{
         labelColor = { default = { 1.0 }, over = { 0.5 } },
         shape = "roundedRect",
         cornerRadius = 10,
-        fillColor = { default = { 0.2, 0.7, 0.2, 1 }, over = { 0.2, 0.7, 0.2, 0.5 } },
+        fillColor = { default={0.5, 0.5, 0, 1}, over={0.5, 0.5, 0, 0.5} },  -- Yellow and black mix
         width = 100, height = 40,
         onRelease = onSaveBtnRelease  -- Define the save button event handler
     }
 
-    saveButton.x = display.contentCenterX - 100
-    saveButton.y = display.contentHeight - saveButton.contentHeight / 2 - 105
+    saveButton.x = display.contentCenterX - 110
+    saveButton.y = display.contentHeight - saveButton.contentHeight / 2 - 55
+-----------------------------------------------------------------------------------------------------------------
 
     local restoreButton = widget.newButton{
         label = "Restore",
         labelColor = { default = { 1.0 }, over = { 0.5 } },
         shape = "roundedRect",
         cornerRadius = 10,
-        fillColor = { default = { 0.7, 0.2, 0.2, 1 }, over = { 0.7, 0.2, 0.2, 0.5 } },
+        fillColor = { default={0.5, 0.5, 0, 1}, over={0.5, 0.5, 0, 0.5} },  -- Yellow and black mix
         width = 100, height = 40,
         onRelease = onRestoreBtnRelease  -- Define the restore button event handler
     }
 
-    restoreButton.x = display.contentCenterX + 0
-    restoreButton.y = display.contentHeight - restoreButton.contentHeight / 2 - 105
+    restoreButton.x = display.contentCenterX -1
+    restoreButton.y = display.contentHeight - restoreButton.contentHeight / 2 - 55
 ---------------------------------------------------------------------------------------------------------------
 
      -- Create the slider
@@ -509,6 +548,8 @@ local saveButton = widget.newButton{
     sceneGroup:insert(increaseSpeedButton)
     sceneGroup:insert(decreaseSpeedButton)
     sceneGroup:insert(slider)
+    sceneGroup:insert(titleText)
+    
 
     main()
 end
