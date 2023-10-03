@@ -36,7 +36,15 @@ local function onPlayBtnRelease()
 
     return true -- indicates successful touch
 end
+----------------------------------------------------------------------------------------------------------
 
+local function onfbackBtnRelease()
+    
+    -- go to level1.lua scene
+    composer.gotoScene( "feedback", "fade", 500 )
+    
+    return true -- indicates successful touch
+end
 
 
 ---------------------------------------------------------------------------------------------------------------
@@ -307,12 +315,50 @@ local function decreaseSpeed()
         onSliderChange({ value = newValue })  -- Call the slider change handler to update the game speed
     end
 end
+-----------Animations----------------------------------------------------------------------------------------------------
 
+local function displayPointsWithAnimation()
+    local function fadeIn(circle, delay)
+        transition.to(circle, {
+            time = 1000,  -- Adjust the duration as needed
+            alpha = 1,
+            delay = delay,
+            transition = easing.outQuad
+        })
+    end
+
+display.setDefault("background", unpack(backgroundColor))
+    for i = 1, gridSize do
+        for j = 1, gridSize do
+            local x, y = startX + (i - 1) * pointRadius, startY + (j - 1) * pointRadius
+            local circle = display.newCircle(x, y, pointRadius)
+            circle:setFillColor(grid[i][j] and unpack(aliveColor) or unpack(deadColor))
+            circle.alpha = 0  -- Make the circle invisible initially
+            circles[#circles + 1] = circle
+            fadeIn(circle, (i + j) * 10)  -- Delay the fade-in animation based on position
+        end
+    end
+end
+---------------------------------------------------------------------------------------------------------------
+local function buttonPressEffect(event)
+    local button = event.target
+
+    if event.phase == "began" then
+        -- Scale the button down to 95% of its size when pressed
+        transition.to(button, { xScale = 0.95, yScale = 0.95, time = 100 })
+    elseif event.phase == "ended" or event.phase == "cancelled" then
+        -- Return the button to its original size when the touch is released
+        transition.to(button, { xScale = 1, yScale = 1, time = 100 })
+    end
+
+    return true
+end
 ---------------------------------------------------------------------------------------------------------------
 
 local function main()
     createGrid()
     displayPoints()
+    displayPointsWithAnimation()
     Runtime:addEventListener("enterFrame", onEnterFrame)
     physics.start()
     physics.pause()
@@ -366,7 +412,7 @@ function scene:create(event)
     }
 
     randomStartButton.x = display.contentCenterX - 110  -- Adjust the position as needed
-    randomStartButton.y = display.contentHeight - randomStartButton.contentHeight / 2 - 150
+    randomStartButton.y = display.contentHeight - randomStartButton.contentHeight / 2 - 180
 
 -------------------------------------------------------------------------------------------------------------
 
@@ -386,9 +432,11 @@ function scene:create(event)
     }
 
     userInputButton.x = display.contentCenterX +4
-    userInputButton.y = display.contentHeight - userInputButton.contentHeight / 2 - 150
+    userInputButton.y = display.contentHeight - userInputButton.contentHeight / 2 - 180
 --Back--------------------------------------------------------------------------------------------------------------
-    playBtn = widget.newButton{
+  
+
+     playBtn = widget.newButton{
         label = "Back",
         labelColor = { default={ 1.0 }, over={ 0.5 } },
         shape = "roundedRect",
@@ -399,10 +447,13 @@ function scene:create(event)
     }
 
     playBtn.x = display.contentCenterX + 110
+    playBtn.y = display.contentHeight - playBtn.contentHeight / 2 - 180 
 
-    playBtn.y = display.contentHeight - playBtn.contentHeight / 2 - 150 
+
+    playBtn:addEventListener("touch", buttonPressEffect)
 
 ----------------------------------------------------------------------------------------------------------------
+ 
     randomSeedButton = widget.newButton{
         label = "Random Seed",
         labelColor = { default={ 1.0 }, over={ 0.5 } },
@@ -416,7 +467,7 @@ function scene:create(event)
     }
 
     randomSeedButton.x = display.contentCenterX + 110
-    randomSeedButton.y = display.contentHeight - randomSeedButton.contentHeight / 2 - 100
+    randomSeedButton.y = display.contentHeight - randomSeedButton.contentHeight / 2 - 130
 
 ---------------------------------------------------------------------------------------------------------------
 pauseResumeBtn = widget.newButton{
@@ -431,7 +482,7 @@ pauseResumeBtn = widget.newButton{
     }
 
     pauseResumeBtn.x = display.contentCenterX - 114
-    pauseResumeBtn.y = display.contentHeight - pauseResumeBtn.contentHeight / 2 - 100
+    pauseResumeBtn.y = display.contentHeight - pauseResumeBtn.contentHeight / 2 - 130
 
  
 
@@ -449,7 +500,7 @@ pauseResumeBtn = widget.newButton{
     }
 
     restartBtn.x = display.contentCenterX - 5
-    restartBtn.y = display.contentHeight - restartBtn.contentHeight / 2 - 100
+    restartBtn.y = display.contentHeight - restartBtn.contentHeight / 2 - 130
 
 ---------------------------------------------------------------------------------------------------------------
     local stopBtn = widget.newButton{
@@ -463,7 +514,7 @@ pauseResumeBtn = widget.newButton{
     }
 
     stopBtn.x = display.contentCenterX + 110
-    stopBtn.y = display.contentHeight - stopBtn.contentHeight / 2 - 55
+    stopBtn.y = display.contentHeight - stopBtn.contentHeight / 2 - 80
 
 ---------------------------------------------------------------------------------------------------------------
 local saveButton = widget.newButton{
@@ -477,7 +528,7 @@ local saveButton = widget.newButton{
     }
 
     saveButton.x = display.contentCenterX - 110
-    saveButton.y = display.contentHeight - saveButton.contentHeight / 2 - 55
+    saveButton.y = display.contentHeight - saveButton.contentHeight / 2 - 80
 -----------------------------------------------------------------------------------------------------------------
 
     local restoreButton = widget.newButton{
@@ -491,7 +542,7 @@ local saveButton = widget.newButton{
     }
 
     restoreButton.x = display.contentCenterX -1
-    restoreButton.y = display.contentHeight - restoreButton.contentHeight / 2 - 55
+    restoreButton.y = display.contentHeight - restoreButton.contentHeight / 2 - 80
 ---------------------------------------------------------------------------------------------------------------
 
      -- Create the slider
@@ -523,6 +574,22 @@ local saveButton = widget.newButton{
         y = display.contentHeight - 30,
         fontSize = 24,
     }
+--------------------------------------------------------------------------------------------------------------
+    fbackBtn = widget.newButton{
+        label = "feedback",
+        labelColor = { default={ 1.0 }, over={ 0.5 } },
+        shape = "roundedRect",
+        cornerRadius = 10,
+        fillColor = { default={0.5, 0.5, 0, 1}, over={0.5, 0.5, 0, 0.5} },  -- Yellow and black mix
+        width = 200, height = 25,
+        onRelease = onfbackBtnRelease  -- event listener function
+    }
+
+    fbackBtn.x = display.contentCenterX
+    fbackBtn.y = display.contentHeight - fbackBtn.contentHeight / 2 - 45
+
+
+    fbackBtn:addEventListener("touch", buttonPressEffect)
 
 ---------------------------------------------------------------------------------------------------------------
     
@@ -549,6 +616,8 @@ local saveButton = widget.newButton{
     sceneGroup:insert(decreaseSpeedButton)
     sceneGroup:insert(slider)
     sceneGroup:insert(titleText)
+    sceneGroup:insert(fbackBtn)
+
     
 
     main()
